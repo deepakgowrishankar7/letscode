@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Education Dashboard</title>
+    <style>
+        :root {
+            --bg-main: #0a0f0d;
+            --bg-card: #141e17;
+            --bg-sidebar: #141e17;
+            --bg-course: #181c1a;
+            --text-main: #fff;
+            --text-accent: #1abc9c;
+            --border-main: #222;
+            --card-shadow: 0 4px 24px rgba(0,0,0,0.18);
+        }
+        body.light-mode {
+            --bg-main: #f6f8fa;
+            --bg-card: #fff;
+            --bg-sidebar: #f0f2f5;
+            --bg-course: #f9fafb;
+            --text-main: #222;
+            --text-accent: #1abc9c;
+            --border-main: #d1d5db;
+            --card-shadow: 0 4px 24px rgba(0,0,0,0.06);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        body {
+            display: flex;
+            height: 100vh;
+            background: var(--bg-main);
+            color: var(--text-main);
+        }
+        .dashboard {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: var(--bg-sidebar);
+            color: var(--text-main);
+            padding: 20px 16px;
+            position: relative;
+            border-right: 2px solid var(--border-main);
+            box-shadow: 2px 0 12px 0 rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6em;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+        .sidebar h2 img {
+            margin-right: 10px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            filter: grayscale(100%);
+            border: 2px solid var(--text-main);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .sidebar nav {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            align-items: center;
+        }
+        .sidebar nav a {
+            color: var(--text-main);
+            text-decoration: none;
+            padding: 12px 30px;
+            margin: 6px 0;
+            width: 80%;
+            display: block;
+            border-radius: 8px;
+            font-size: 1.08em;
+            letter-spacing: 1px;
+            position: relative;
+            transition: background 0.3s, color 0.3s, transform 0.2s;
+            overflow: hidden;
+        }
+        .sidebar nav a.active,
+        .sidebar nav a:hover {
+            background: linear-gradient(90deg, var(--border-main) 70%, var(--bg-sidebar) 100%);
+            color: var(--text-main);
+            transform: translateX(8px) scale(1.04);
+            box-shadow: 2px 4px 16px 0 rgba(0,0,0,0.10);
+        }
+        .main-content {
+            flex: 1;
+            padding: 32px 32px 32px 32px;
+            overflow-y: auto;
+            background: var(--bg-main);
+            color: var(--text-main);
+            animation: fadeInMain 0.8s;
+            min-width: 0;
+            position: relative;
+        }
+        @keyframes fadeInMain {
+            from { opacity: 0; transform: translateY(30px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        main > section {
+            opacity: 0;
+            transform: translateY(30px);
+            pointer-events: none;
+            position: absolute;
+            width: 100%;
+            left: 0;
+            top: 0;
+            transition: opacity 0.5s, transform 0.5s;
+            z-index: 1;
+        }
+        main > section.active-section {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+            position: relative;
+            z-index: 2;
+            animation: fadeInSection 0.7s;
+        }
+        @keyframes fadeInSection {
+            from { opacity: 0; transform: translateY(30px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            gap: 16px;
+        }
+        header input {
+            width: 320px;
+            padding: 12px;
+            border: 1px solid var(--border-main);
+            border-radius: 6px;
+            background: var(--bg-sidebar);
+            color: var(--text-main);
+            font-size: 1em;
+            transition: border 0.3s, box-shadow 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        header input:focus {
+            border: 1.5px solid var(--text-main);
+            outline: none;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+        }
+        /* .profile {
+            display: flex;
+            align-items: center;
+        }
+        .profile img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            filter: grayscale(100%);
+            border: 2px solid var(--text-main);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18); 
+         } */
+        .dashboard-overview,
+        .recommended-courses,
+        .categories,
+        .my-courses,
+        .progress-tracker,
+        .assignments,
+        .discussion-forum,
+        .settings,
+        .notifications {
+            background: var(--bg-card);
+            color: var(--text-main);
+            padding: 28px 24px;
+            border-radius: 14px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 32px;
+            transition: box-shadow 0.3s, background 0.3s;
+            border: 1.5px solid var(--border-main);
+            min-height: 120px;
+            animation: fadeInSection 0.7s;
+        }
+        .courses {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+        .course-card,
+        .category-card {
+            background: var(--border-main);
+            color: var(--text-main);
+            padding: 18px 10px;
+            border-radius: 8px;
+            text-align: center;
+            flex: 1 1 120px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.25s, box-shadow 0.3s;
+            border: 1.5px solid var(--border-main);
+            min-width: 120px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+            font-size: 1.08em;
+        }
+        .course-card img {
+            width: 100px;
+            height: 100px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            object-fit: cover;
+            background: var(--bg-course);
+            border: 2.5px solid var(--border-main);
+            box-shadow: 0 4px 18px rgba(0,0,0,0.25), 0 1.5px 6px rgba(20,30,23,0.18);
+            transition: transform 0.3s, box-shadow 0.3s, border 0.3s;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .course-card:hover img {
+            transform: scale(1.08) rotate(-2deg);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 2px 12px rgba(20,30,23,0.22);
+            border: 2.5px solid var(--text-main);
+            background: #232b27;
+        }
+        .course-card:hover,
+        .category-card:hover {
+            background: #333;
+            transform: scale(1.06) translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+        }
+        .course-card:hover div,
+        .category-card:hover div {
+            color: #fff;
+        }
+        .progress-container .course {
+            margin-bottom: 14px;
+        }
+        progress {
+            width: 100%;
+            height: 12px;
+            appearance: none;
+            border-radius: 6px;
+            background: var(--border-main);
+            margin-top: 6px;
+        }
+        progress::-webkit-progress-bar {
+            background: var(--border-main);
+            border-radius: 6px;
+        }
+        progress::-webkit-progress-value {
+            background: var(--text-main);
+            border-radius: 6px;
+        }
+        progress::-moz-progress-bar {
+            background: var(--text-main);
+            border-radius: 6px;
+        }
+        .compiler-section {
+            background: var(--bg-course);
+            border: 1.5px solid var(--border-main);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            padding: 32px 18px 24px 18px;
+            max-width: 900px;
+            margin: 0 auto 32px auto;
+        }
+        .compiler-card {
+            background: #232b27;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+            padding: 24px 18px 18px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .compiler-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+        .compiler-label {
+            font-weight: 500;
+            color: var(--text-main); /* Uses theme variable */
+            margin-right: 8px;
+            font-size: 1.08em;
+            transition: color 0.2s;
+        }
+        /* Make the language select in the compiler section always readable */
+        .compiler-select {
+            background: var(--bg-card);
+            color: var(--text-main);
+            border: 1.5px solid var(--border-main);
+            border-radius: 6px;
+            padding: 7px 18px;
+            font-size: 1em;
+            outline: none;
+            margin-right: 12px;
+            transition: background 0.2s, color 0.2s, border 0.2s;
+        }
+        .compiler-select:focus {
+            border: 1.5px solid var(--text-accent);
+            background: var(--bg-course);
+            color: var(--text-main);
+        }
+        .compiler-run-btn {
+            background: var(--text-accent);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 22px;
+            font-size: 1.08em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-left: auto;
+        }
+        .compiler-run-btn:hover {
+            background: #16a085;
+        }
+        .compiler-editor {
+            width: 100%;
+            max-width: 100%;
+            min-width: 100%;
+            height: 400px;
+            min-height: 250px;
+            font-size: 1.1em;
+            resize: both;
+            background: var(--bg-course);
+            color: var(--text-main);
+            border-radius: 8px;
+            border: 1.5px solid var(--border-main);
+            padding: 14px;
+            margin-bottom: 18px;
+            box-sizing: border-box;
+        }
+        .compiler-output-area {
+            margin-top: 10px;
+            background: var(--bg-course);
+            border-radius: 8px;
+            border: 1.5px solid var(--border-main);
+            padding: 14px 10px 10px 10px;
+        }
+        .compiler-output {
+            background: #111;
+            color: var(--text-accent);
+            border-radius: 6px;
+            padding: 12px;
+            min-height: 60px;
+            font-size: 1.08em;
+            margin-top: 6px;
+            margin-bottom: 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: 'Fira Mono', 'Consolas', 'Menlo', monospace;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+        }
+        .settings-tabs {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+        .settings-tab {
+            background: #232b27;
+            color: var(--text-main);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 28px;
+            font-size: 1.08em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .settings-tab.active, .settings-tab:focus {
+            background: var(--text-accent);
+            color: #fff;
+            outline: none;
+        }
+        .logout-btn {
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 32px;
+            font-size: 1.08em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 28px;
+            box-shadow: 0 0 18px 2px #e74c3c, 0 2px 8px rgba(0,0,0,0.10);
+            letter-spacing: 1px;
+            transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+            outline: none;
+        }
+        .logout-btn:hover,
+        .logout-btn:focus {
+            background: #c0392b;
+            box-shadow: 0 0 28px 4px #c0392b, 0 4px 16px rgba(0,0,0,0.15);
+            transform: scale(1.04) translateY(-2px);
+            color: #fff;
+        }
+        .settings-card {
+            background: var(--bg-course);
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+            padding: 24px 18px 18px 18px;
+            margin-bottom: 24px;
+            max-width: 420px;
+        }
+        .settings-form label {
+            color: var(--text-main);
+            font-size: 1em;
+            margin-bottom: 6px;
+            display: block;
+            font-weight: 500;
+        }
+        .settings-form input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 14px;
+            border-radius: 6px;
+            border: 1.5px solid var(--border-main);
+            background: var(--bg-card); /* Use card background for better contrast */
+            color: var(--text-main);    /* Use main text color */
+            font-size: 1em;
+            outline: none;
+            transition: border 0.2s, background 0.2s, color 0.2s;
+        }
+        .settings-form input:focus {
+            border: 1.5px solid var(--text-accent);
+            background: var(--bg-course); /* Slightly different on focus if you want */
+            color: var(--text-main);
+        }
+        .settings-btn {
+            background: var(--text-accent);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 22px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .settings-btn:hover {
+            background: #16a085;
+        }
+        @media (max-width: 900px) {
+            .dashboard { flex-direction: column; }
+            .sidebar { width: 100%; flex-direction: row; border-right: none; border-bottom: 2px solid var(--border-main); }
+            .sidebar nav { flex-direction: row; width: 100%; }
+            .sidebar nav a { width: auto; flex: 1; text-align: center; }
+            .main-content { padding: 16px; }
+        }
+        @media (max-width: 600px) {
+            .sidebar { padding: 10px 0; }
+            .main-content { padding: 6px; }
+            .dashboard-overview, .my-courses, .progress-tracker, .assignments, .discussion-forum, .settings, .notifications {
+                padding: 12px 6px;
+                margin-bottom: 16px;
+            }
+            .courses { flex-direction: column; gap: 10px; }
+        }
+        @media (max-width: 1200px) {
+            .courses {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 800px) {
+            .courses {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 500px) {
+            .courses {
+                grid-template-columns: 1fr;
+            }
+        }
+        .logout-btn {
+            background: #222;
+            color: #fff;
+            border: 1.5px solid #c0392b;
+            transition: background 0.3s, color 0.3s;
+        }
+        .logout-btn:hover {
+            background: #c0392b;
+            color: #fff;
+        }
+        #no-course-message {
+            display: none;
+            color: var(--text-main);
+            margin-top: 20px;
+            font-size: 1.1em;
+            text-align: center;
+        }
+        .course-layout {
+            display: flex;
+            min-height: 500px;
+            background: var(--bg-course);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .course-sidebar {
+            width: 220px;
+            background: var(--bg-sidebar);
+            padding: 28px 14px;
+            border-right: 1.5px solid var(--border-main);
+        }
+        .course-sidebar h3 {
+            margin-bottom: 18px;
+            color: var(--text-accent);
+            font-size: 1.18em;
+        }
+        .course-sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .course-sidebar .course-topic {
+            padding: 10px 8px;
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 1.08em;
+            margin: 6px 0;
+            cursor: pointer;
+            transition: background .18s;
+        }
+        .course-sidebar .course-topic.active,
+        .course-sidebar .course-topic:hover {
+            background: #232b27;
+            color: var(--text-accent);
+        }
+        .course-main-content {
+            flex: 1;
+            padding: 36px 32px;
+            color: var(--text-main);
+        }
+        .java-content-block,
+        .cpp-content-block,
+        .python-content-block,
+        .c-content-block {
+            display: none;
+        }
+        .theme-toggle-btn {
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-main);
+            font-size: 1em;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-main);
+            margin-left: 16px;
+            transition: background 0.2s, color 0.2s, border 0.2s;
+            position: static;
+        }
+        .theme-toggle-btn:hover {
+            background: var(--text-accent);
+            color: #fff;
+            border: 1.5px solid var(--text-accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>
+                <img src="image/logo.jpg" alt="Logo">
+                EduDash
+            </h2>
+            <nav>
+                <a href="#" class="active" onclick="showSection('home')">Home</a>
+                <a href="#" onclick="showSection('courses')">Courses</a>
+                <a href="#" onclick="showSection('notifications')">Notifications</a>
+                <a href="#" onclick="showSection('compiler')">Compiler</a>
+                <a href="#" onclick="showSection('settings')">Settings</a>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header>
+                <input type="text" placeholder="Search courses...">
+                <div class="profile" style="display: flex; align-items: center; gap: 12px;">
+                    <button id="theme-toggle" class="theme-toggle-btn" title="Toggle light/dark mode">Light Mode</button>
+                    <!-- <img src="image/profile.jpeg" alt="Profile"> -->
+                </div>
+            </header>
+
+            <!-- Home Section -->
+            <section id="home" class="dashboard-overview active-section">
+                <h2>Welcome, Student!</h2>
+                <div class="progress-container">
+                    <h3>Ongoing Courses</h3>
+                    <div class="course">
+                        <h4>Data Structures & Algorithms</h4>
+                        <progress value="70" max="100"></progress>
+                    </div>
+                    <div class="course">
+                        <h4>Java Programming</h4>
+                        <progress value="50" max="100"></progress>
+                    </div>
+                    <div class="course">
+                        <h4>C++ Basics</h4>
+                        <progress value="30" max="100"></progress>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Courses Section -->
+            <section id="courses" class="my-courses">
+                <h3>Courses</h3>
+                <div class="courses">
+                    <div class="course-card" onclick="showSection('java-course')">
+                        <img src="image/cources2.jpeg" alt="Java Programming">
+                        <div>Java Programming</div>
+                    </div>
+                    <div class="course-card" onclick="showSection('cpp-course')">
+                        <img src="image/c++.jpg" alt="C++ Basics">
+                        <div>C++ Basics</div>
+                    </div>
+                    <div class="course-card" onclick="showSection('c-course')">
+                        <img src="image/cprograming.jpg" alt="C Programming">
+                        <div>C Programming</div>
+                    </div>
+                    <div class="course-card" onclick="showSection('python-course')">
+                        <img src="image/cources.jpeg" alt="Python for Beginners">
+                        <div>Python for Beginners</div>
+                    </div>
+                    <div class="course-card">
+                        <img src="image/category1.jpeg" alt="Web Development">
+                        <div>Web Development</div>
+                    </div>
+                </div>
+                <div id="no-course-message" style="display:none; color:var(--text-main); margin-top:20px; font-size:1.1em;">
+                    No course found
+                </div>
+            </section>
+
+            <!-- Notifications Section -->
+            <section id="notifications" class="notifications">
+                <h3>Notifications</h3>
+                <div class="courses">
+                    <div class="course-card">Notification 1</div>
+                    <div class="course-card">Notification 2</div>
+                    <div class="course-card">Notification 3</div>
+                </div>
+                <div id="no-notification-message" style="display:none; color:var(--text-main); margin-top:20px; font-size:1.1em; text-align:center;">
+                    No notification found
+                </div>
+            </section>
+
+            <!-- Settings Section (unchanged) -->
+            <section id="settings" class="settings" style="display:none;">
+                <h2>Settings</h2>
+                <!-- Account Details Section -->
+                <div class="settings-card" style="margin-bottom: 32px;">
+                    <h3>Account Details</h3>
+                    <div style="margin-bottom:10px;">
+                        <strong>User Name:</strong> <span id="settings-username">Student</span><br>
+                        <strong>Email:</strong> <span id="settings-email">student@example.com</span>
+                    </div>
+                </div>
+                <!-- Account Settings Section -->
+                <div class="settings-card">
+                    <h3>Account Settings</h3>
+                    <form class="settings-form" onsubmit="return false;">
+                        <label for="change-email">Change Email</label>
+                        <input type="email" id="change-email" placeholder="Enter new email" />
+                        <button type="button" class="settings-btn" onclick="changeEmail()">Change Email</button>
+                        <label for="change-password" style="margin-top:12px;">Change Password</label>
+                        <input type="password" id="change-password" placeholder="Enter new password" />
+                        <button type="button" class="settings-btn" onclick="changePassword()">Change Password</button>
+                    </form>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </section>
+
+            <!-- Compiler Section (unchanged) -->
+            <section id="compiler" class="dashboard-overview compiler-section" style="display:none;">
+                <h2>Online Compiler</h2>
+                <div class="compiler-card">
+                    <div class="compiler-controls">
+                        <label class="compiler-label" for="compiler-language">Language:</label>
+                        <select id="compiler-language" class="compiler-select">
+                            <option value="python">Python</option>
+                            <option value="java">Java</option>
+                            <option value="cpp">C++</option>
+                            <option value="c">C</option>
+                        </select>
+                        <button class="compiler-run-btn">Run</button>
+                    </div>
+                    <textarea class="compiler-editor" placeholder="Write your code here..."></textarea>
+                    <div class="compiler-output-area">
+                        <strong>Output:</strong>
+                        <pre class="compiler-output">// Output will appear here</pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Java Course Section -->
+            <section id="java-course" class="course-details-section" style="display:none;">
+                <div class="course-layout">
+                    <nav class="course-sidebar">
+                        <h3>Java Tutorial</h3>
+                        <ul>
+                            <li class="course-topic active" onclick="showJavaContent('intro')">Introduction</li>
+                            <li class="course-topic" onclick="showJavaContent('videos')">Videos</li>
+                            <li class="course-topic" onclick="showJavaContent('pdfs')">PDF Notes</li>
+                            <li class="course-topic" onclick="showJavaContent('oop')">OOP Concepts</li>
+                            <li class="course-topic" onclick="showJavaContent('quiz')">Quiz</li>
+                        </ul>
+                    </nav>
+                    <div class="course-main-content">
+                        <div id="java-content-intro" class="java-content-block" style="display:block;">
+                            <h2>Java Introduction</h2>
+                            <p>Java is a popular, high-level, object-oriented programming language...</p>
+                        </div>
+                        <div id="java-content-videos" class="java-content-block" style="display:none;">
+                            <h2>Java Video Tutorials</h2>
+                            <iframe width="400" height="220" src="https://www.youtube.com/embed/grEKMHGYyns" frameborder="0" allowfullscreen></iframe>
+                            <iframe width="400" height="220" src="https://www.youtube.com/embed/UmnCZ7-9yDY" frameborder="0" allowfullscreen></iframe>
+                            <iframe width="400" height="220" src="https://www.youtube.com/embed/eIrMbAQSU34" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                        <div id="java-content-pdfs" class="java-content-block" style="display:none;">
+                            <h2>Java PDF Notes</h2>
+                            <a href="files/java-basics.pdf" target="_blank">Download Java Basics PDF</a>
+                        </div>
+                        <div id="java-content-oop" class="java-content-block" style="display:none;">
+                            <h2>OOP Concepts</h2>
+                            <p>Java supports major object-oriented principles: Inheritance, Encapsulation, Polymorphism, Abstraction...</p>
+                        </div>
+                        <div id="java-content-quiz" class="java-content-block" style="display:none;">
+                            <h2>Java Quiz</h2>
+                            <p>Coming soon...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- C++ Course Section -->
+            <section id="cpp-course" class="course-details-section" style="display:none;">
+                <div class="course-layout">
+                    <nav class="course-sidebar">
+                        <h3>C++ Tutorial</h3>
+                        <ul>
+                            <li class="course-topic active" onclick="showCppContent('intro')">Introduction</li>
+                            <li class="course-topic" onclick="showCppContent('videos')">Videos</li>
+                            <li class="course-topic" onclick="showCppContent('pdfs')">PDF Notes</li>
+                            <li class="course-topic" onclick="showCppContent('oop')">OOP Concepts</li>
+                            <li class="course-topic" onclick="showCppContent('quiz')">Quiz</li>
+                        </ul>
+                    </nav>
+                    <div class="course-main-content">
+                        <div id="cpp-content-intro" class="cpp-content-block" style="display:block;">
+                            <h2>C++ Introduction</h2>
+                            <p>C++ is a powerful, high-performance programming language...</p>
+                        </div>
+                        <div id="cpp-content-videos" class="cpp-content-block" style="display:none;">
+                            <h2>C++ Video Tutorials</h2>
+                            <iframe width="400" height="220" src="https://www.youtube.com/embed/vLnPwxZdW4Y" frameborder="0" allowfullscreen></iframe>
+                            <iframe width="400" height="220" src="https://www.youtube.com/embed/Rub-JsjMhWY" frameborder="0" allowfullscreen></iframe>
+                            <iframe width="400" height="220" src="https://www.youtube.com/embed/mUQZ1qmKlLY" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                        <div id="cpp-content-pdfs" class="cpp-content-block" style="display:none;">
+                            <h2>C++ PDF Notes</h2>
+                            <a href="files/cpp-basics.pdf" target="_blank">Download C++ Basics PDF</a>
+                        </div>
+                        <div id="cpp-content-oop" class="cpp-content-block" style="display:none;">
+                            <h2>OOP Concepts in C++</h2>
+                            <p>C++ supports object-oriented programming with classes, inheritance, polymorphism, and more.</p>
+                        </div>
+                        <div id="cpp-content-quiz" class="cpp-content-block" style="display:none;">
+                            <h2>C++ Quiz</h2>
+                            <p>Coming soon...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Python Course Section -->
+            <section id="python-course" class="course-details-section" style="display:none;">
+                <div class="course-layout">
+                    <nav class="course-sidebar">
+                        <h3>Python Tutorial</h3>
+                        <ul>
+                            <li class="course-topic active" onclick="showPythonContent('intro')">Introduction</li>
+                            <li class="course-topic" onclick="showPythonContent('videos')">Videos</li>
+                            <li class="course-topic" onclick="showPythonContent('pdfs')">PDF Notes</li>
+                            <li class="course-topic" onclick="showPythonContent('basics')">Python Basics</li>
+                            <li class="course-topic" onclick="showPythonContent('quiz')">Quiz</li>
+                        </ul>
+                    </nav>
+                    <div class="course-main-content">
+                        <div id="python-content-intro" class="python-content-block" style="display:block;">
+                            <h2>Python Introduction</h2>
+                            <p>Python is a versatile, beginner-friendly programming language...</p>
+                        </div>
+                        <div id="python-content-videos" class="python-content-block" style="display:none;">
+                            <h2>Python Video Tutorials</h2>
+                            <iframe width="400" height="220" src="https://www.youtube.com/embed/_uQrJ0TkZlc" frameborder="0" allowfullscreen></iframe>
+                            <iframe width="400" height="220" src="https://www.youtube.com/embed/rfscVS0vtbw" frameborder="0" allowfullscreen></iframe>
+                            <iframe width="400" height="220" src="https://www.youtube.com/embed/kqtD5dpn9C8" frameborder="0" allowfullscreen></iframe>
+                            <iframe width="400" height="220" src="https://www.youtube.com/embed/XKHEtdqhLK8" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                        <div id="python-content-pdfs" class="python-content-block" style="display:none;">
+                            <h2>Python PDF Notes</h2>
+                            <a href="files/python-basics.pdf" target="_blank">Download Python Basics PDF</a>
+                        </div>
+                        <div id="python-content-basics" class="python-content-block" style="display:none;">
+                            <h2>Python Basics</h2>
+                            <p>Learn about variables, data types, loops, and functions in Python.</p>
+                        </div>
+                        <div id="python-content-quiz" class="python-content-block" style="display:none;">
+                            <h2>Python Quiz</h2>
+                            <p>Coming soon...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- C Programming Course Section -->
+            <section id="c-course" class="course-details-section" style="display:none;">
+                <div class="course-layout">
+                    <nav class="course-sidebar">
+                        <h3>C Programming Tutorial</h3>
+                        <ul>
+                            <li class="course-topic active" onclick="showCContent('intro')">Introduction</li>
+                            <li class="course-topic" onclick="showCContent('videos')">Videos</li>
+                            <li class="course-topic" onclick="showCContent('pdfs')">PDF Notes</li>
+                            <li class="course-topic" onclick="showCContent('basics')">C Basics</li>
+                            <li class="course-topic" onclick="showCContent('quiz')">Quiz</li>
+                        </ul>
+                    </nav>
+                    <div class="course-main-content">
+                        <div id="c-content-intro" class="c-content-block" style="display:block;">
+                            <h2>C Programming Introduction</h2>
+                            <p>C is a foundational programming language used for system and application software...</p>
+                        </div>
+                        <div id="c-content-videos" class="c-content-block" style="display:none;">
+                            <h2>C Programming Video Tutorials</h2>
+                            <iframe width="400" height="220" src="https://www.youtube.com/embed/irqbmMNs2Bo" frameborder="0" allowfullscreen></iframe>
+                            <iframe width="400" height="220" src="https://www.youtube.com/embed/KJgsSFOSQv0" frameborder="0" allowfullscreen></iframe>
+                            <iframe width="400" height="220" src="https://www.youtube.com/embed/8PopR3x-VMY" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                        <div id="c-content-pdfs" class="c-content-block" style="display:none;">
+                            <h2>C Programming PDF Notes</h2>
+                            <a href="files/c-basics.pdf" target="_blank">Download C Basics PDF</a>
+                        </div>
+                        <div id="c-content-basics" class="c-content-block" style="display:none;">
+                            <h2>C Basics</h2>
+                            <p>Learn about variables, data types, loops, and functions in C.</p>
+                        </div>
+                        <div id="c-content-quiz" class="c-content-block" style="display:none;">
+                            <h2>C Programming Quiz</h2>
+                            <p>Coming soon...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- <button id="theme-toggle" class="theme-toggle-btn" title="Toggle light/dark mode">🌙</button> -->
+
+    <script>
+    // Section switching logic
+    function showSection(sectionId) {
+        const sections = document.querySelectorAll('main > section');
+        sections.forEach(section => {
+            section.classList.remove('active-section');
+            section.style.display = 'none';
+        });
+        const target = document.getElementById(sectionId);
+        if (target) {
+            target.classList.add('active-section');
+            target.style.display = '';
+        }
+        // Show default tab for each course
+        if (sectionId === 'java-course') showJavaContent('intro');
+        if (sectionId === 'cpp-course') showCppContent('intro');
+        if (sectionId === 'python-course') showPythonContent('intro');
+        if (sectionId === 'c-course') showCContent('intro');
+        // Sidebar active link logic (optional)
+        const sidebarLinks = document.querySelectorAll(".sidebar nav a");
+        sidebarLinks.forEach(link => {
+            link.classList.remove("active");
+        });
+        const activeLink = document.querySelector(`.sidebar nav a[onclick="showSection('${sectionId}')"]`);
+        if (activeLink) activeLink.classList.add("active");
+    }
+    // Java course sidebar logic
+    function showJavaContent(section) {
+        document.querySelectorAll('#java-course .course-topic').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.java-content-block').forEach(b => b.style.display = 'none');
+        document.getElementById('java-content-' + section).style.display = 'block';
+        document.querySelectorAll('#java-course .course-topic').forEach(link => {
+            if (link.getAttribute('onclick').includes(section))
+                link.classList.add('active');
+        });
+    }
+    // C++ course sidebar logic
+    function showCppContent(section) {
+        document.querySelectorAll('#cpp-course .course-topic').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.cpp-content-block').forEach(b => b.style.display = 'none');
+        document.getElementById('cpp-content-' + section).style.display = 'block';
+        document.querySelectorAll('#cpp-course .course-topic').forEach(link => {
+            if (link.getAttribute('onclick').includes(section))
+                link.classList.add('active');
+        });
+    }
+    // Python course sidebar logic
+    function showPythonContent(section) {
+        document.querySelectorAll('#python-course .course-topic').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.python-content-block').forEach(b => b.style.display = 'none');
+        document.getElementById('python-content-' + section).style.display = 'block';
+        document.querySelectorAll('#python-course .course-topic').forEach(link => {
+            if (link.getAttribute('onclick').includes(section))
+                link.classList.add('active');
+        });
+    }
+    // C course sidebar logic
+    function showCContent(section) {
+        document.querySelectorAll('#c-course .course-topic').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.c-content-block').forEach(b => b.style.display = 'none');
+        document.getElementById('c-content-' + section).style.display = 'block';
+        document.querySelectorAll('#c-course .course-topic').forEach(link => {
+            if (link.getAttribute('onclick').includes(section))
+                link.classList.add('active');
+        });
+    }
+    // Change Email function
+    function changeEmail() {
+        const newEmail = document.getElementById('change-email').value.trim();
+        if (newEmail) {
+            document.getElementById('settings-email').textContent = newEmail;
+            alert('Email changed to: ' + newEmail);
+            // Here you would also update the backend if needed
+        }
+    }
+    // Change Password function
+    function changePassword() {
+        const newPassword = document.getElementById('change-password').value.trim();
+        if (newPassword) {
+            alert('Password changed successfully!');
+            // Here you would also update the backend if needed
+        }
+    }
+    // Logout function
+    function logout() {
+        alert('Logged out!');
+        // Add your logout logic here (e.g., clear localStorage, redirect, etc.)
+    }
+    // Light/Dark mode toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    function updateThemeBtn() {
+        if(document.body.classList.contains('light-mode')) {
+            themeToggle.textContent = 'Dark Mode';
+            localStorage.setItem('theme', 'light');
+        } else {
+            themeToggle.textContent = 'Light Mode';
+            localStorage.setItem('theme', 'dark');
+        }
+    }
+    themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('light-mode');
+        updateThemeBtn();
+        updateCompilerSelectColor();
+    });
+    function updateCompilerSelectColor() {
+        const select = document.getElementById('compiler-language');
+        if (!select) return;
+        if (document.body.classList.contains('light-mode')) {
+            select.style.color = "#222"; // dark text for light mode
+            select.style.background = "#fff";
+        } else {
+            select.style.color = "#fff"; // light text for dark mode
+            select.style.background = "#141e17";
+        }
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+        showSection('home');
+        if(localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-mode');
+        }
+        updateThemeBtn();
+        updateCompilerSelectColor();
+
+        // Search functionality for courses (works from any section)
+        const searchInput = document.querySelector('header input[type="text"]');
+        const courseSection = document.getElementById('courses');
+        const courseCards = document.querySelectorAll('.my-courses .course-card');
+        const noCourseMsg = document.getElementById('no-course-message');
+
+        // Notification search logic
+        const notificationCards = document.querySelectorAll('#notifications .course-card');
+        const noNotificationMsgId = 'no-notification-message';
+
+        // Create the "No notification found" message if it doesn't exist
+        let noNotificationMsg = document.getElementById(noNotificationMsgId);
+        if (!noNotificationMsg) {
+            const notifSection = document.getElementById('notifications');
+            noNotificationMsg = document.createElement('div');
+            noNotificationMsg.id = noNotificationMsgId;
+            noNotificationMsg.style.display = 'none';
+            noNotificationMsg.style.color = 'var(--text-main)';
+            noNotificationMsg.style.marginTop = '20px';
+            noNotificationMsg.style.fontSize = '1.1em';
+            noNotificationMsg.style.textAlign = 'center';
+            noNotificationMsg.textContent = 'No notification found';
+            notifSection.appendChild(noNotificationMsg);
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                // Always show the courses section when searching
+                showSection('courses');
+                const query = this.value.trim().toLowerCase();
+                let found = false;
+                courseCards.forEach(card => {
+                    const text = card.textContent.toLowerCase();
+                    if (text.includes(query)) {
+                        card.style.display = '';
+                        found = true;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                if (!found) {
+                    noCourseMsg.style.display = '';
+                } else {
+                    noCourseMsg.style.display = 'none';
+                }
+
+                // Notifications search
+                let notifFound = false;
+                notificationCards.forEach(card => {
+                    const text = card.textContent.toLowerCase();
+                    if (text.includes(query)) {
+                        card.style.display = '';
+                        notifFound = true;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                if (!notifFound) {
+                    noNotificationMsg.style.display = '';
+                } else {
+                    noNotificationMsg.style.display = 'none';
+                }
+            });
+        }
+    });
+    </script>
+</body>
+</html>
+
+<!-- //register.html -->
+<!-- <form id="register-form">
+  <input type="text" id="register-name" required>
+  <input type="email" id="register-email" required>
+  <input type="password" id="register-password" required>
+  <button type="submit">Register</button>
+</form> -->
+<script>
+document.getElementById('register-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const name = document.getElementById('register-name').value.trim();
+    const email = document.getElementById('register-email').value.trim();
+    const password = document.getElementById('register-password').value.trim();
+    const response = await fetch('http://localhost:3888/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+    });
+    const data = await response.json();
+    if (data.message === 'Registered successfully') {
+        localStorage.setItem('loggedInEmail', email);   
+    } else {
+        alert(data.message);
+    }
+});
+</script>
